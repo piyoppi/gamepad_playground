@@ -13,11 +13,13 @@
     <script type="module">
       import { GamePads } from './src/main.js';
       const gamePads = new GamePads();
-      gamePads.setIndex(0);
 
       gamePads.setAxisChangedCallback(e => console.log(`Axis ${e.index} : ${e.value}`));
       gamePads.setButtonChangedCallback(e => console.log(`Button ${e.index} : ${e.value.pressed}`));
-      gamePads.pooling();
+      gamePads.setConnectedCallback(e => {
+        gamePads.setIndex(0);
+        gamePads.pooling();
+      })
     </script>
   </body>
 </html>
