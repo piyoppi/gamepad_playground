@@ -70,8 +70,8 @@ export class GamePads {
 
   _initialize() {
     this.state = {
-      buttons: [],
-      axes: []
+      buttons: this._currentGamePad.buttons.slice(),
+      axes: this._currentGamePad.axes.slice()
     };
     this._buttonChangedStates = this._currentGamePad.buttons.map(() => false);
     this._axisChangedStates = this._currentGamePad.axes.map(() => false);
@@ -94,29 +94,25 @@ export class GamePads {
   }
 
   _captureButtons() {
-    if( this.state.buttons.length > 0 ) {
-      this.state.buttons.forEach((state, index) => {
-        const currentState = this._currentGamePad.buttons[index];
-        const isChanged = (state.pressed !== currentState.pressed) || (state.value !== currentState.value) || (state.touched !== currentState.touched);
-        this._buttonChangedStates[index] = isChanged;
-        if ( isChanged && this._onButtonChanged ) this._onButtonChanged({value: currentState, index});
-      });
-    }
+    this.state.buttons.forEach((state, index) => {
+      const currentState = this._currentGamePad.buttons[index];
+      const isChanged = (state.pressed !== currentState.pressed) || (state.value !== currentState.value) || (state.touched !== currentState.touched);
+      this._buttonChangedStates[index] = isChanged;
+      if ( isChanged && this._onButtonChanged ) this._onButtonChanged({value: currentState, index});
 
-    this.state.buttons = this._currentGamePad.buttons.slice();
+      this.state.buttons[index] = {pressed: currentState.pressed, value: currentState.value, touched: currentState.touched};
+    });
   }
 
   _captureAxes() {
-    if( this.state.axes.length > 0 ) {
-      this.state.axes.forEach((state, index) => {
-        const currentState = this._currentGamePad.axes[index];
-        const isChanged = currentState !== state;
-        this._axisChangedStates[index] = isChanged;
-        if ( isChanged && this._onAxisChanged ) this._onAxisChanged({value: currentState, index});
-      });
-    }
+    this.state.axes.forEach((state, index) => {
+      const currentState = this._currentGamePad.axes[index];
+      const isChanged = currentState !== state;
+      this._axisChangedStates[index] = isChanged;
+      if ( isChanged && this._onAxisChanged ) this._onAxisChanged({value: currentState, index});
 
-    this.state.axes = this._currentGamePad.axes.slice();
+      this.state.axes[index] = currentState;
+    });
   }
 
 }
