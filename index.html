@@ -3,12 +3,21 @@
   <head>
     <title>GamePad sample</title>
     <meta charset="utf-8">
-    <script type="module" src="./src/main.js"></script>
   </head>
 
   <body>
     <article>
       <h1>GamePad Sample</h1>
     </article>
+
+    <script type="module">
+      import { GamePads } from './src/main.js';
+      const gamePads = new GamePads();
+      gamePads.setIndex(0);
+
+      gamePads.setAxisChangedCallback(e => console.log(`Axis ${e.index} : ${e.value}`));
+      gamePads.setButtonChangedCallback(e => console.log(`Button ${e.index} : ${e.value.pressed}`));
+      gamePads.pooling();
+    </script>
   </body>
 </html>
