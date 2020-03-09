@@ -14,11 +14,11 @@
       import { GamePads } from './src/main.js';
       const gamePads = new GamePads();
 
-      gamePads.setAxisChangedCallback(e => console.log(`Axis ${e.index} : ${e.value}`));
-      gamePads.setButtonChangedCallback(e => console.log(`Button ${e.index} : ${e.value.pressed}`));
-      gamePads.setConnectedCallback(e => {
+      gamePads.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} : ${e.value}`));
+      gamePads.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} : ${e.value.pressed}`));
+      gamePads.addEventHandler('connected', e => {
         gamePads.setIndex(0);
-        gamePads.pooling();
+        gamePads.capture();
       })
     </script>
   </body>

@@ -1,13 +1,23 @@
+const captureState = {
+  ready: 0,
+  capturing: 1,
+  waitForStop: 2
+}
+
 export class GamePads {
   constructor() {
     this._currentIndex = 0;
     this._currentGamePad = null;
     this._connectedGamePadsCount = 0;
+    this._captureState = captureState.ready;
 
-    this._onButtonChanged = null;
-    this._onAxisChanged = null;
-    this._onConnected = null;
-    this._onDisconnected = null;
+    this._eventHandlers = {
+      buttonChanged: [],
+      axisChanged: [],
+      connected: [],
+      disconnected: [],
+    };
+    this._eventHandlersCounter = 0;
 
     this.state = {
       buttons: [],
@@ -37,20 +47,11 @@ export class GamePads {
     this._initialize();
   }
 
-  setAxisChangedCallback(func) {
-    this._onAxisChanged = func;
-  }
-
-  setButtonChangedCallback(func) {
-    this._onButtonChanged = func;
-  }
-
-  setConnectedCallback(func) {
-    this._onConnected = func;
-  }
-
-  setDisconnectedCallback(func) {
-    this._onDisconnected = func;
+  addEventHandler(name, handler) {
+    this._eventHandlers[name].push({
+      handler,
+      id: this._eventHandlersCounter++
+    });
   }
 
   step() {
@@ -59,13 +60,35 @@ export class GamePads {
     this._captureAxes();
   }
 
-  pooling() {
+  capture() {
+    if( this._captureState === captureState.capturing ) return;
+    this._capture();
+  }
+
+  stop() {
+    if( this._captureState === captureState.capturing ) {
+      this._captureState = captureState.waitForStop;
+    }
+  }
+
+  _capture() {
+    if( this._captureState === captureState.waitForStop ) {
+      this._captureState = captureState.ready;
+      return;
+    }
+
+    this._captureState = captureState.capturing;
+
     window.requestAnimationFrame(() => {
       if( this._connectedGamePadsCount > 0 ) {
         this.step();
       }
-      this.pooling();
+      this._capture();
     });
+  }
+
+  _dispatchEvent(name, e) {
+    this._eventHandlers[name].forEach( obj => obj.handler(e) );
   }
 
   _initialize() {
@@ -80,12 +103,12 @@ export class GamePads {
   _setupEventListener() {
     window.addEventListener("gamepadconnected", e => {
       this._connectedGamePadsCount++;
-      if( this._onConnected ) this._onConnected(e);
+      this._dispatchEvent('connected', e);
     });
 
     window.addEventListener("gamepaddisconnected", e => {
       this._connectedGamePadsCount--;
-      if( this._onDisconnected ) this._onDisconnected(e);
+      this._dispatchEvent('disconnected', e);
     });
   }
 
@@ -98,7 +121,7 @@ export class GamePads {
       const currentState = this._currentGamePad.buttons[index];
       const isChanged = (state.pressed !== currentState.pressed) || (state.value !== currentState.value) || (state.touched !== currentState.touched);
       this._buttonChangedStates[index] = isChanged;
-      if ( isChanged && this._onButtonChanged ) this._onButtonChanged({value: currentState, index});
+      if ( isChanged ) this._dispatchEvent('buttonChanged', {value: currentState, index});
 
       this.state.buttons[index] = {pressed: currentState.pressed, value: currentState.value, touched: currentState.touched};
     });
@@ -109,10 +132,9 @@ export class GamePads {
       const currentState = this._currentGamePad.axes[index];
       const isChanged = currentState !== state;
       this._axisChangedStates[index] = isChanged;
-      if ( isChanged && this._onAxisChanged ) this._onAxisChanged({value: currentState, index});
+      if ( isChanged ) this._dispatchEvent('axisChanged', {value: currentState, index});
 
       this.state.axes[index] = currentState;
     });
   }
-
 }
