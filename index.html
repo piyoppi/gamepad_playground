@@ -12,14 +12,30 @@
 
     <script type="module">
       import { GamePads } from './src/main.js';
-      const gamePads = new GamePads();
+      import { GamePadMapper } from './src/padMapper.js';
 
-      gamePads.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} : ${e.value}`));
-      gamePads.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} : ${e.value.pressed}`));
-      gamePads.addEventHandler('connected', e => {
+      const gamePads = new GamePads();
+      const keys = [
+        { name: 'button 1', meta: {} },
+        { name: 'button 2', meta: {} },
+        { name: 'button 3', meta: {} },
+        { name: 'button 4', meta: {} }
+      ];
+      const padMapper = new GamePadMapper(gamePads, keys);
+
+      gamePads.addEventHandler('connected', async (e) => {
         gamePads.setIndex(0);
+
+        while(!padMapper.captureStepCompleted) {
+          await padMapper.stepBy();
+        }
+        console.log('captured');
+        console.log(padMapper.keys);
+        padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
+
         gamePads.capture();
-      })
+      });
+      gamePads.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} : ${e.value}`));
     </script>
   </body>
 </html>

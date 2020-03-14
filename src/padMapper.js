@@ -5,14 +5,30 @@ const captureState = {
 }
 
 export class GamePadMapper {
-  constructor(gamePad) {
-    this.keys = [];
+  constructor(gamePads, keys) {
+    this._keys = keys.map( item => ({...item, buttonIndex: -1}));
+    this._keysMap = new Map();
+
     this._index = -1;
     this._gamePads = gamePads;
 
-    this._gamePads.capture();
-
     this._captureState = captureState.ready;
+
+    this._eventHandlers = {
+      buttonChanged: [],
+      axisChanged: []
+    };
+
+    this._gamePads.addEventHandler('buttonChanged', e => {
+      const key = this._keysMap.get(e.index);
+      if( !key ) return;
+
+      this._dispatchEvent('buttonChanged', {
+        name: key.name,
+        meta: key.meta,
+        ...e
+      });
+    });
   }
 
   reset() {
@@ -43,12 +59,13 @@ export class GamePadMapper {
     return this._keys.find( key => key.name === name );
   }
 
-  stepBy() {
+  async stepBy() {
     if( !this.captureStepStarted || this.captureStepCompleted ) {
       this._index = 0;
     }
 
-    return this._setKey(this.currentKey).then(() => this._index++);
+    await this._setKey(this.currentKey);
+    this._index++;
   }
 
   setFromIndex(index) {
@@ -64,16 +81,24 @@ export class GamePadMapper {
     this._captureState = captureState.waitForStop;
   }
 
+  addEventHandler(name, handler) {
+    this._eventHandlers[name].push({
+      handler,
+      id: this._eventHandlersCounter++
+    });
+  }
+
   _setKey(key) {
     if( this._captureState === captureState.capturing ) return Promise.reject();
 
     return new Promise((resolve, reject) => {
       const stepProc = () => {
         this._gamePads.step();
-        const pressedButtonIndex = this._gamePads.indexOf(true);
+        const pressedButtonIndex = this._gamePads.buttonChangedStates.indexOf(true);
 
-        if( pressedButtonIndex >= 0 ) {
+        if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
           key.buttonIndex = pressedButtonIndex;
+          this._keysMap.set(pressedButtonIndex, key);
           resolve();
         } else if(this._captureState === captureState.waitForStop) {
           this._captureState = captureState.ready;
@@ -82,6 +107,12 @@ export class GamePadMapper {
           window.requestAnimationFrame(() => stepProc());
         }
       };
+
+      stepProc();
     });
+  }
+
+  _dispatchEvent(name, e) {
+    this._eventHandlers[name].forEach( obj => obj.handler(e) );
   }
 }
