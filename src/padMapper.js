@@ -34,10 +34,6 @@ export class GamePadMapper {
     });
   }
 
-  reset() {
-    this._index = 0;
-  }
-
   get index() {
     return this._index;
   }
@@ -68,23 +64,9 @@ export class GamePadMapper {
       this._stepCaptureStarted = true;
     }
 
-    await this._setKey();
+    await this._capture();
     this._index++;
     this._stepCaptureStarted = !this.captureStepCompleted;
-  }
-
-  async _setFromIndex(index) {
-    this._index = index;
-
-    if( this._gamePads.capturing ) {
-      await this._pauseCapture();
-    }
-
-    if( !this.captureStepStarted ) {
-      await this._setKey();
-      this._index = -1;
-      this._restartCapture();
-    }
   }
 
   async setFromKeyName(name) {
@@ -105,9 +87,13 @@ export class GamePadMapper {
     });
   }
 
-  _setKey() {
+  async _capture() {
     if( this._captureState === captureState.capturing ) return Promise.reject();
     this._captureState = captureState.capturing;
+
+    if( this._gamePads.capturing ) {
+      await this._pauseCapture();
+    }
 
     return new Promise((resolve, reject) => {
       const stepProc = () => {
@@ -122,10 +108,10 @@ export class GamePadMapper {
             ...key,
             index: pressedButtonIndex
           });
-          this._captureState = captureState.ready;
+          this._captureCompleted();
           resolve();
         } else if(this._captureState === captureState.waitForStop) {
-          this._captureState = captureState.ready;
+          this._captureCompleted();
           resolve();
         } else {
           window.requestAnimationFrame(() => stepProc());
@@ -134,6 +120,20 @@ export class GamePadMapper {
 
       stepProc();
     });
+  }
+
+  _captureCompleted() {
+    this._captureState = captureState.ready;
+    this._restartCapture();
+  }
+
+  async _setFromIndex(index) {
+    this._index = index;
+
+    if( !this.captureStepStarted ) {
+      await this._capture();
+      this._index = -1;
+    }
   }
 
   async _pauseCapture() {

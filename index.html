@@ -45,6 +45,7 @@
         document.getElementById(`key-${e.name}`).innerText = e.index;
       });
 
+      gamePads.capture();
       gamePads.addEventHandler('connected', async (e) => {
         gamePads.setIndex(0);
 
@@ -54,7 +55,6 @@
         console.log('captured');
         padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
 
-        gamePads.capture();
       });
       gamePads.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} : ${e.value}`));
     </script>
