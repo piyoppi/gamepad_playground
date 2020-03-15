@@ -4,10 +4,16 @@ const captureState = {
   waitForStop: 2
 }
 
+export const keyType = {
+  button: 0,
+  axis: 1
+}
+
 export class GamePadMapper {
   constructor(gamePads, keys) {
-    this._keys = keys.map( item => ({...item, buttonIndex: -1}));
+    this._keys = keys;
     this._keysMap = new Map();
+    this._axesMap = new Map();
 
     this._index = -1;
     this._gamePads = gamePads;
@@ -27,6 +33,17 @@ export class GamePadMapper {
       if( !key ) return;
 
       this._dispatchEvent('buttonChanged', {
+        name: key.name,
+        meta: key.meta,
+        ...e
+      });
+    });
+
+    this._gamePads.addEventHandler('axisChanged', e => {
+      const key = this._axesMap.get(e.index);
+      if( !key ) return;
+
+      this._dispatchEvent('axisChanged', {
         name: key.name,
         meta: key.meta,
         ...e
@@ -98,19 +115,34 @@ export class GamePadMapper {
     return new Promise((resolve, reject) => {
       const stepProc = () => {
         this._gamePads.step();
-        const key = this.currentKey;
-        const pressedButtonIndex = this._gamePads.buttonChangedStates.indexOf(true);
 
-        if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
-          key.buttonIndex = pressedButtonIndex;
-          this._keysMap.set(pressedButtonIndex, key);
-          this._dispatchEvent('applied', {
-            ...key,
-            index: pressedButtonIndex
-          });
-          this._captureCompleted();
-          resolve();
-        } else if(this._captureState === captureState.waitForStop) {
+        const key = this.currentKey;
+
+        if( key.type === keyType.button ) {
+          const pressedButtonIndex = this._gamePads.buttonChangedStates.indexOf(true);
+
+          if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
+            this._keysMap.set(pressedButtonIndex, key);
+            this._dispatchEvent('applied', {...key, index: pressedButtonIndex});
+            this._captureCompleted();
+            resolve();
+            return;
+          }
+        } else {
+          const selectedAxisIndex = this._gamePads.state.axes
+            .map( (value, index) => value - this._gamePads.state.axesNeutral[index] )
+            .findIndex(diff => Math.abs(diff) > 0.5);
+
+          if( selectedAxisIndex >= 0 && !this._axesMap.has(selectedAxisIndex) ) {
+            this._axesMap.set(selectedAxisIndex, key);
+            this._dispatchEvent('applied', {...key, index: selectedAxisIndex});
+            this._captureCompleted();
+            resolve();
+            return;
+          }
+        }
+
+        if(this._captureState === captureState.waitForStop) {
           this._captureCompleted();
           resolve();
         } else {

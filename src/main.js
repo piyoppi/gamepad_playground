@@ -21,7 +21,8 @@ export class GamePads {
 
     this.state = {
       buttons: [],
-      axes: []
+      axes: [],
+      axesNeutral: []
     };
     this._buttonChangedStates = [];
     this._axisChangedStates = [];
@@ -109,7 +110,8 @@ export class GamePads {
   _initialize() {
     this.state = {
       buttons: this._currentGamePad.buttons.slice(),
-      axes: this._currentGamePad.axes.slice()
+      axes: this._currentGamePad.axes.slice(),
+      axesNeutral: this._currentGamePad.axes.slice()
     };
     this._buttonChangedStates = this._currentGamePad.buttons.map(() => false);
     this._axisChangedStates = this._currentGamePad.axes.map(() => false);

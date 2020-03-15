@@ -14,20 +14,24 @@
           <li>button2: <span id="key-button-2"></span> <button id="setup-button-2">Set</button></li>
           <li>button3: <span id="key-button-3"></span> <button id="setup-button-3">Set</button></li>
           <li>button4: <span id="key-button-4"></span> <button id="setup-button-4">Set</button></li>
+          <li>axis1: <span id="key-axis-x"></span> <button id="setup-axis-x">Set</button></li>
+          <li>axis2: <span id="key-axis-y"></span> <button id="setup-axis-y">Set</button></li>
         </ul>
       </div>
     </article>
 
     <script type="module">
       import { GamePads } from './src/main.js';
-      import { GamePadMapper } from './src/padMapper.js';
+      import { GamePadMapper, keyType } from './src/padMapper.js';
 
       const gamePads = new GamePads();
       const keys = [
-        { name: 'button-1', meta: {} },
-        { name: 'button-2', meta: {} },
-        { name: 'button-3', meta: {} },
-        { name: 'button-4', meta: {} }
+        { name: 'button-1', type: keyType.button, meta: {} },
+        { name: 'button-2', type: keyType.button, meta: {} },
+        { name: 'button-3', type: keyType.button, meta: {} },
+        { name: 'button-4', type: keyType.button, meta: {} },
+        { name: 'axis-x', type: keyType.axis, meta: {} },
+        { name: 'axis-y', type: keyType.axis, meta: {} }
       ];
 
       const padMapper = new GamePadMapper(gamePads, keys);
@@ -53,10 +57,10 @@
           await padMapper.stepBy();
         }
         console.log('captured');
-        padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
 
+        padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
+        padMapper.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} ${e.name} : ${e.value}`));
       });
-      gamePads.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} : ${e.value}`));
     </script>
   </body>
 </html>
