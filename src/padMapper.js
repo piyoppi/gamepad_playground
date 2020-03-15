@@ -13,10 +13,13 @@ export class GamePadMapper {
     this._gamePads = gamePads;
 
     this._captureState = captureState.ready;
+    this._stepCaptureStarted = false;
+    this._pausedCapture = false;
 
     this._eventHandlers = {
       buttonChanged: [],
-      axisChanged: []
+      axisChanged: [],
+      applied: []
     };
 
     this._gamePads.addEventHandler('buttonChanged', e => {
@@ -35,6 +38,10 @@ export class GamePadMapper {
     this._index = 0;
   }
 
+  get index() {
+    return this._index;
+  }
+
   get keys() {
     return this._keys;
   }
@@ -44,7 +51,7 @@ export class GamePadMapper {
   }
 
   get captureStepStarted() {
-    return this._index >= 0;
+    return this._stepCaptureStarted;
   }
 
   get captureStepCompleted() {
@@ -52,29 +59,39 @@ export class GamePadMapper {
   }
 
   get currentKey() {
-    return !this.captureStepCompleted && this.captureStepStarted ? this._keys[this._index] : null;
-  }
-
-  keyFromName(name) {
-    return this._keys.find( key => key.name === name );
+    return this._keys[this._index];
   }
 
   async stepBy() {
-    if( !this.captureStepStarted || this.captureStepCompleted ) {
+    if( !this.captureStepStarted ) {
       this._index = 0;
+      this._stepCaptureStarted = true;
     }
 
-    await this._setKey(this.currentKey);
+    await this._setKey();
     this._index++;
+    this._stepCaptureStarted = !this.captureStepCompleted;
   }
 
-  setFromIndex(index) {
-    return this._setKey(this._keys[index]);
+  async _setFromIndex(index) {
+    this._index = index;
+
+    if( this._gamePads.capturing ) {
+      await this._pauseCapture();
+    }
+
+    if( !this.captureStepStarted ) {
+      await this._setKey();
+      this._index = -1;
+      this._restartCapture();
+    }
   }
 
-  setFromKeyName(name) {
-    const key = this.keyFromName(name);
-    return this._setKey(key);
+  async setFromKeyName(name) {
+    const index = this._keys.findIndex( key => key.name === name );
+    if( index >= 0 ) {
+      await this._setFromIndex(index);
+    }
   }
 
   stop() {
@@ -88,17 +105,24 @@ export class GamePadMapper {
     });
   }
 
-  _setKey(key) {
+  _setKey() {
     if( this._captureState === captureState.capturing ) return Promise.reject();
+    this._captureState = captureState.capturing;
 
     return new Promise((resolve, reject) => {
       const stepProc = () => {
         this._gamePads.step();
+        const key = this.currentKey;
         const pressedButtonIndex = this._gamePads.buttonChangedStates.indexOf(true);
 
         if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
           key.buttonIndex = pressedButtonIndex;
           this._keysMap.set(pressedButtonIndex, key);
+          this._dispatchEvent('applied', {
+            ...key,
+            index: pressedButtonIndex
+          });
+          this._captureState = captureState.ready;
           resolve();
         } else if(this._captureState === captureState.waitForStop) {
           this._captureState = captureState.ready;
@@ -110,6 +134,17 @@ export class GamePadMapper {
 
       stepProc();
     });
+  }
+
+  async _pauseCapture() {
+    await this._gamePads.stop();
+    this._pausedCapture = true;
+  }
+
+  _restartCapture() {
+    if( !this._pausedCapture ) return;
+    this._gamePads.capture();
+    this._pausedCapture = false;
   }
 
   _dispatchEvent(name, e) {

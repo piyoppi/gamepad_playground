@@ -5,9 +5,17 @@
     <meta charset="utf-8">
   </head>
 
-  <body>
+  <body id="root">
     <article>
       <h1>GamePad Sample</h1>
+      <div id="key-mapper">
+        <ul>
+          <li>button1: <span id="key-button-1"></span> <button id="setup-button-1">Set</button></li>
+          <li>button2: <span id="key-button-2"></span> <button id="setup-button-2">Set</button></li>
+          <li>button3: <span id="key-button-3"></span> <button id="setup-button-3">Set</button></li>
+          <li>button4: <span id="key-button-4"></span> <button id="setup-button-4">Set</button></li>
+        </ul>
+      </div>
     </article>
 
     <script type="module">
@@ -16,12 +24,26 @@
 
       const gamePads = new GamePads();
       const keys = [
-        { name: 'button 1', meta: {} },
-        { name: 'button 2', meta: {} },
-        { name: 'button 3', meta: {} },
-        { name: 'button 4', meta: {} }
+        { name: 'button-1', meta: {} },
+        { name: 'button-2', meta: {} },
+        { name: 'button-3', meta: {} },
+        { name: 'button-4', meta: {} }
       ];
+
       const padMapper = new GamePadMapper(gamePads, keys);
+
+      // set event hander to buttons
+      keys.map(key => key.name).forEach(keyName => {
+        const targetButton = document.getElementById(`setup-${keyName}`);
+        targetButton.addEventListener('click', async () => {
+          await padMapper.setFromKeyName(keyName);
+        });
+      });
+
+      // Show the result of key mappings
+      padMapper.addEventHandler('applied', e => {
+        document.getElementById(`key-${e.name}`).innerText = e.index;
+      });
 
       gamePads.addEventHandler('connected', async (e) => {
         gamePads.setIndex(0);
@@ -30,7 +52,6 @@
           await padMapper.stepBy();
         }
         console.log('captured');
-        console.log(padMapper.keys);
         padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
 
         gamePads.capture();

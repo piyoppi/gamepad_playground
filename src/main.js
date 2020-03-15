@@ -41,6 +41,10 @@ export class GamePads {
     return navigator.getGamepads();
   }
 
+  get capturing() {
+    return this._captureState !== captureState.ready;
+  }
+
   setIndex(index) {
     this._currentIndex = index;
     this._setGamePad();
@@ -61,7 +65,8 @@ export class GamePads {
   }
 
   capture() {
-    if( this._captureState === captureState.capturing ) return;
+    if( this.capturing ) return;
+    this._captureState = captureState.capturing;
     this._capture();
   }
 
@@ -69,6 +74,18 @@ export class GamePads {
     if( this._captureState === captureState.capturing ) {
       this._captureState = captureState.waitForStop;
     }
+
+    return new Promise((resolve, reject) => {
+      const waitForStop = () => {
+        if( this._captureState === captureState.ready ) {
+          resolve();
+        } else {
+          window.requestAnimationFrame(waitForStop);
+        }
+      };
+
+      waitForStop();
+    });
   }
 
   _capture() {
@@ -76,8 +93,6 @@ export class GamePads {
       this._captureState = captureState.ready;
       return;
     }
-
-    this._captureState = captureState.capturing;
 
     window.requestAnimationFrame(() => {
       if( this._connectedGamePadsCount > 0 ) {
