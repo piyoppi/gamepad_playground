@@ -21,6 +21,7 @@ export class GamePadMapper {
     this._captureState = captureState.ready;
     this._stepCaptureStarted = false;
     this._pausedCapture = false;
+    this._waitNeatrulIndex = -1;
 
     this._eventHandlers = {
       buttonChanged: [],
@@ -133,12 +134,18 @@ export class GamePadMapper {
             .map( (value, index) => value - this._gamePads.state.axesNeutral[index] )
             .findIndex(diff => Math.abs(diff) > 0.5);
 
-          if( selectedAxisIndex >= 0 && !this._axesMap.has(selectedAxisIndex) ) {
+          if( this._waitNeatrulIndex >= 0 ) {
+            const isNeatural = Math.abs(this._gamePads.state.axesNeutral[this._waitNeatrulIndex] - this._gamePads.state.axes[this._waitNeatrulIndex]) < 0.1
+            if( isNeatural ) {
+              this._waitNeatrulIndex = -1;
+              this._captureCompleted();
+              resolve();
+              return;
+            }
+          } else if( selectedAxisIndex >= 0 ) {
             this._axesMap.set(selectedAxisIndex, key);
             this._dispatchEvent('applied', {...key, index: selectedAxisIndex});
-            this._captureCompleted();
-            resolve();
-            return;
+            this._waitNeatrulIndex = selectedAxisIndex;
           }
         }
 
