@@ -35,7 +35,6 @@ export class GamePadMapper {
 
       this._dispatchEvent('buttonChanged', {
         name: key.name,
-        meta: key.meta,
         ...e
       });
     });
@@ -46,7 +45,6 @@ export class GamePadMapper {
 
       this._dispatchEvent('axisChanged', {
         name: key.name,
-        meta: key.meta,
         ...e
       });
     });

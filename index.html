@@ -26,12 +26,12 @@
 
       const gamePads = new GamePads();
       const keys = [
-        { name: 'button-1', type: keyType.button, index: null, meta: {} },
-        { name: 'button-2', type: keyType.button, index: null, meta: {} },
-        { name: 'button-3', type: keyType.button, index: null, meta: {} },
-        { name: 'button-4', type: keyType.button, index: null, meta: {} },
-        { name: 'axis-x', type: keyType.axis, index: null, meta: {} },
-        { name: 'axis-y', type: keyType.axis, index: null, meta: {} }
+        { name: 'button-1', type: keyType.button, index: null },
+        { name: 'button-2', type: keyType.button, index: null },
+        { name: 'button-3', type: keyType.button, index: null },
+        { name: 'button-4', type: keyType.button, index: null },
+        { name: 'axis-x', type: keyType.axis, index: null },
+        { name: 'axis-y', type: keyType.axis, index: null }
       ];
 
       const padMapper = new GamePadMapper(gamePads, keys);
