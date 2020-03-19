@@ -105,6 +105,18 @@ export class GamePadMapper {
     });
   }
 
+  _setKeysMap(buttonIndex, key) {
+    this._keysMap.delete(key.index)
+    this._keysMap.set(buttonIndex, key);
+    key.index = buttonIndex;
+  }
+
+  _setAxesMap(axisIndex, key) {
+    this._axesMap.delete(key.index)
+    this._axesMap.set(axisIndex, key);
+    key.index = axisIndex;
+  }
+
   async _capture() {
     if( this._captureState === captureState.capturing ) return Promise.reject();
     this._captureState = captureState.capturing;
@@ -123,7 +135,7 @@ export class GamePadMapper {
           const pressedButtonIndex = this._gamePads.buttonChangedStates.indexOf(true);
 
           if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
-            this._keysMap.set(pressedButtonIndex, key);
+            this._setKeysMap(pressedButtonIndex, key);
             this._dispatchEvent('applied', {...key, index: pressedButtonIndex});
             this._captureCompleted();
             resolve();
@@ -143,7 +155,7 @@ export class GamePadMapper {
               return;
             }
           } else if( selectedAxisIndex >= 0 ) {
-            this._axesMap.set(selectedAxisIndex, key);
+            this._setAxesMap(selectedAxisIndex, key);
             this._dispatchEvent('applied', {...key, index: selectedAxisIndex});
             this._waitNeatrulIndex = selectedAxisIndex;
           }
