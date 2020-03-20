@@ -66,7 +66,7 @@ export class GamePadMapper {
     return this._index;
   }
 
-  get captureStepStarted() {
+  get registerAllStarted() {
     return this._stepCaptureStarted;
   }
 
@@ -79,6 +79,8 @@ export class GamePadMapper {
   }
 
   registerAll() {
+    this._index = 0;
+
     return new Promise(async (resolve, reject) => {
       while(!this.captureStepCompleted) {
         await this.stepBy();
@@ -89,7 +91,7 @@ export class GamePadMapper {
   }
 
   async stepBy() {
-    if( !this.captureStepStarted ) {
+    if( !this._stepCaptureStarted ) {
       this._index = 0;
       this._stepCaptureStarted = true;
     }
@@ -217,7 +219,7 @@ export class GamePadMapper {
   async _setFromIndex(index) {
     this._index = index;
 
-    if( !this.captureStepStarted ) {
+    if( !this._stepCaptureStarted ) {
       await this._capture();
       this._index = -1;
     }
