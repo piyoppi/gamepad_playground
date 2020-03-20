@@ -27,7 +27,8 @@ export class GamePadMapper {
     this._eventHandlers = {
       buttonChanged: [],
       axisChanged: [],
-      applied: []
+      applied: [],
+      registerCompleted: []
     };
 
     this._gamePads.addEventHandler('buttonChanged', e => {
@@ -82,6 +83,7 @@ export class GamePadMapper {
       while(!this.captureStepCompleted) {
         await this.stepBy();
       }
+      this._dispatchEvent('registerCompleted', {});
       resolve();
     });
   }

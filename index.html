@@ -55,14 +55,17 @@
       gamePads.addEventHandler('connected', e => {
         gamePads.setIndex(0);
 
-        captureButton.addEventListener('click', async () => {
+        captureButton.addEventListener('click', () => {
           console.log('capturing');
-          await padMapper.registerAll();
-          console.log('captured');
+          padMapper.registerAll();
         });
 
         padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
         padMapper.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} ${e.name} : ${e.value}`));
+      });
+
+      padMapper.addEventHandler('registerCompleted', e => {
+        console.log('captured');
       });
     </script>
   </body>
