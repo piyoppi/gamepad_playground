@@ -16,7 +16,7 @@ export class GamePadMapper {
     this._keysMap = new Map();
     this._axesMap = new Map();
 
-    this._index = -1;
+    this._cursor = -1;
     this._gamePads = gamePads;
 
     this._captureState = captureState.ready;
@@ -56,15 +56,15 @@ export class GamePadMapper {
   }
 
   get cursor() {
-    return this._index;
+    return this._cursor;
   }
 
   get keys() {
     return this._keys;
   }
 
-  get currentIndex() {
-    return this._index;
+  get currentCursor() {
+    return this._cursor;
   }
 
   get registerAllStarted() {
@@ -72,11 +72,11 @@ export class GamePadMapper {
   }
 
   get captureStepCompleted() {
-    return !(this._index < this._keys.length);
+    return !(this._cursor < this._keys.length);
   }
 
   get currentKey() {
-    return this._keys[this._index];
+    return this._keys[this._cursor];
   }
 
   registerAll() {
@@ -98,7 +98,7 @@ export class GamePadMapper {
     }
 
     await this._capture();
-    this._changeCursor(this._index + 1);
+    this._changeCursor(this._cursor + 1);
     this._stepCaptureStarted = !this.captureStepCompleted;
   }
 
@@ -242,7 +242,7 @@ export class GamePadMapper {
   }
 
   _changeCursor(cursor) {
-    this._index = cursor;
+    this._cursor = cursor;
 
     if( cursor < this._keys.length ) {
       this._dispatchEvent('cursorChanged', {cursor});
