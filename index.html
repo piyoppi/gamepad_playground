@@ -42,7 +42,7 @@
       keys.map(key => key.name).forEach(keyName => {
         const targetButton = document.getElementById(`setup-${keyName}`);
         targetButton.addEventListener('click', async () => {
-          await padMapper.setFromKeyName(keyName);
+          await padMapper.register(keyName);
         });
       });
 
@@ -57,9 +57,7 @@
 
         captureButton.addEventListener('click', async () => {
           console.log('capturing');
-          while(!padMapper.captureStepCompleted) {
-            await padMapper.stepBy();
-          }
+          await padMapper.registerAll();
           console.log('captured');
         });
 

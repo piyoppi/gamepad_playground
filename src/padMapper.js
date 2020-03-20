@@ -77,6 +77,15 @@ export class GamePadMapper {
     return this._keys[this._index];
   }
 
+  registerAll() {
+    return new Promise(async (resolve, reject) => {
+      while(!this.captureStepCompleted) {
+        await this.stepBy();
+      }
+      resolve();
+    });
+  }
+
   async stepBy() {
     if( !this.captureStepStarted ) {
       this._index = 0;
@@ -88,7 +97,7 @@ export class GamePadMapper {
     this._stepCaptureStarted = !this.captureStepCompleted;
   }
 
-  async setFromKeyName(name) {
+  async register(name) {
     const index = this._keys.findIndex( key => key.name === name );
     if( index >= 0 ) {
       await this._setFromIndex(index);
