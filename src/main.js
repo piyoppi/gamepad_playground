@@ -30,6 +30,10 @@ export class GamePads {
     this._setupEventListener();
   }
 
+  get hasPads() {
+    return this._connectedGamePadsCount > 0;
+  }
+
   get buttonChangedStates() {
     return this._buttonChangedStates;
   }
@@ -96,7 +100,7 @@ export class GamePads {
     }
 
     window.requestAnimationFrame(() => {
-      if( this._connectedGamePadsCount > 0 ) {
+      if( this.hasPads ) {
         this.step();
       }
       this._capture();

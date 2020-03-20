@@ -8,6 +8,7 @@
   <body id="root">
     <article>
       <h1>GamePad Sample</h1>
+      <button id="capture">capture</button>
       <div id="key-mapper">
         <ul>
           <li>button1: <span id="key-button-1">0</span> <button id="setup-button-1">Set</button></li>
@@ -23,6 +24,7 @@
     <script type="module">
       import { GamePads } from './src/main.js';
       import { GamePadMapper, keyType } from './src/padMapper.js';
+      const captureButton = document.getElementById('capture');
 
       const gamePads = new GamePads();
       const keys = [
@@ -50,13 +52,16 @@
       });
 
       gamePads.capture();
-      gamePads.addEventHandler('connected', async (e) => {
+      gamePads.addEventHandler('connected', e => {
         gamePads.setIndex(0);
 
-        while(!padMapper.captureStepCompleted) {
-          await padMapper.stepBy();
-        }
-        console.log('captured');
+        captureButton.addEventListener('click', async () => {
+          console.log('capturing');
+          while(!padMapper.captureStepCompleted) {
+            await padMapper.stepBy();
+          }
+          console.log('captured');
+        });
 
         padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
         padMapper.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} ${e.name} : ${e.value}`));
