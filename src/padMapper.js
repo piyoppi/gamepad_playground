@@ -11,7 +11,8 @@ export const keyType = {
 
 export class GamePadMapper {
   constructor(gamePads, keys) {
-    this._keys = keys;
+    this._keys = [];
+
     this._keysMap = new Map();
     this._axesMap = new Map();
 
@@ -48,6 +49,8 @@ export class GamePadMapper {
         ...e
       });
     });
+
+    this.setupKeys(keys);
   }
 
   get index() {
@@ -92,6 +95,20 @@ export class GamePadMapper {
     }
   }
 
+  setupKeys(keys) {
+    this._keys = keys;
+
+    keys.forEach(key => {
+      if( key.index !== 0 && !key.index ) return;
+
+      if( key.type === keyType.button ) {
+        this._setKeysMap(key.index, key);
+      } else {
+        this._setAxesMap(key.index, key);
+      }
+    });
+  }
+
   stop() {
     this._captureState = captureState.waitForStop;
   }
@@ -104,15 +121,25 @@ export class GamePadMapper {
   }
 
   _setKeysMap(buttonIndex, key) {
-    this._keysMap.delete(key.index)
+    this._deleteValue(this._keysMap, key);
     this._keysMap.set(buttonIndex, key);
     key.index = buttonIndex;
   }
 
   _setAxesMap(axisIndex, key) {
-    this._axesMap.delete(key.index)
+    this._deleteValue(this._axesMap, key);
     this._axesMap.set(axisIndex, key);
     key.index = axisIndex;
+  }
+
+  _deleteValue(map, val) {
+    let key = null;
+    map.forEach((mapVal, mapKey) => {
+      if( val.name === mapVal.name ) {
+        key = mapKey;
+      }
+    });
+    if( key !== null ) map.delete(key);
   }
 
   async _capture() {
@@ -134,7 +161,7 @@ export class GamePadMapper {
 
           if( pressedButtonIndex >= 0 && this._gamePads.state.buttons[pressedButtonIndex].pressed ) {
             this._setKeysMap(pressedButtonIndex, key);
-            this._dispatchEvent('applied', {...key, index: pressedButtonIndex});
+            this._dispatchEvent('applied', key);
             this._captureCompleted();
             resolve();
             return;
@@ -154,7 +181,7 @@ export class GamePadMapper {
             }
           } else if( selectedAxisIndex >= 0 ) {
             this._setAxesMap(selectedAxisIndex, key);
-            this._dispatchEvent('applied', {...key, index: selectedAxisIndex});
+            this._dispatchEvent('applied', key);
             this._waitNeatrulIndex = selectedAxisIndex;
           }
         }

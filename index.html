@@ -10,12 +10,12 @@
       <h1>GamePad Sample</h1>
       <div id="key-mapper">
         <ul>
-          <li>button1: <span id="key-button-1"></span> <button id="setup-button-1">Set</button></li>
-          <li>button2: <span id="key-button-2"></span> <button id="setup-button-2">Set</button></li>
-          <li>button3: <span id="key-button-3"></span> <button id="setup-button-3">Set</button></li>
-          <li>button4: <span id="key-button-4"></span> <button id="setup-button-4">Set</button></li>
-          <li>axis1: <span id="key-axis-x"></span> <button id="setup-axis-x">Set</button></li>
-          <li>axis2: <span id="key-axis-y"></span> <button id="setup-axis-y">Set</button></li>
+          <li>button1: <span id="key-button-1">0</span> <button id="setup-button-1">Set</button></li>
+          <li>button2: <span id="key-button-2">1</span> <button id="setup-button-2">Set</button></li>
+          <li>button3: <span id="key-button-3">2</span> <button id="setup-button-3">Set</button></li>
+          <li>button4: <span id="key-button-4">3</span> <button id="setup-button-4">Set</button></li>
+          <li>axis1: <span id="key-axis-x">0</span> <button id="setup-axis-x">Set</button></li>
+          <li>axis2: <span id="key-axis-y">1</span> <button id="setup-axis-y">Set</button></li>
         </ul>
       </div>
     </article>
@@ -26,12 +26,12 @@
 
       const gamePads = new GamePads();
       const keys = [
-        { name: 'button-1', type: keyType.button, index: null },
-        { name: 'button-2', type: keyType.button, index: null },
-        { name: 'button-3', type: keyType.button, index: null },
-        { name: 'button-4', type: keyType.button, index: null },
-        { name: 'axis-x', type: keyType.axis, index: null },
-        { name: 'axis-y', type: keyType.axis, index: null }
+        { name: 'button-1', type: keyType.button, index: 0 },
+        { name: 'button-2', type: keyType.button, index: 1 },
+        { name: 'button-3', type: keyType.button, index: 2 },
+        { name: 'button-4', type: keyType.button, index: 3 },
+        { name: 'axis-x', type: keyType.axis, index: 0 },
+        { name: 'axis-y', type: keyType.axis, index: 1 }
       ];
 
       const padMapper = new GamePadMapper(gamePads, keys);
