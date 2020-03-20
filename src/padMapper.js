@@ -28,7 +28,8 @@ export class GamePadMapper {
       buttonChanged: [],
       axisChanged: [],
       applied: [],
-      registerCompleted: []
+      registerCompleted: [],
+      cursorChanged: []
     };
 
     this._gamePads.addEventHandler('buttonChanged', e => {
@@ -54,7 +55,7 @@ export class GamePadMapper {
     this.setupKeys(keys);
   }
 
-  get index() {
+  get cursor() {
     return this._index;
   }
 
@@ -79,7 +80,7 @@ export class GamePadMapper {
   }
 
   registerAll() {
-    this._index = 0;
+    this._changeCursor(0);
 
     return new Promise(async (resolve, reject) => {
       while(!this.captureStepCompleted) {
@@ -92,12 +93,12 @@ export class GamePadMapper {
 
   async stepBy() {
     if( !this._stepCaptureStarted ) {
-      this._index = 0;
+      this._changeCursor(0);
       this._stepCaptureStarted = true;
     }
 
     await this._capture();
-    this._index++;
+    this._changeCursor(this._index + 1);
     this._stepCaptureStarted = !this.captureStepCompleted;
   }
 
@@ -217,11 +218,11 @@ export class GamePadMapper {
   }
 
   async _setFromIndex(index) {
-    this._index = index;
+    this._changeCursor(index);
 
     if( !this._stepCaptureStarted ) {
       await this._capture();
-      this._index = -1;
+      this._changeCursor(-1);
     }
   }
 
@@ -238,5 +239,15 @@ export class GamePadMapper {
 
   _dispatchEvent(name, e) {
     this._eventHandlers[name].forEach( obj => obj.handler(e) );
+  }
+
+  _changeCursor(cursor) {
+    this._index = cursor;
+
+    if( cursor < this._keys.length ) {
+      this._dispatchEvent('cursorChanged', {cursor});
+    } else {
+      this._dispatchEvent('cursorChanged', {cursor: -1});
+    }
   }
 }
