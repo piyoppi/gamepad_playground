@@ -1,10 +1,16 @@
 article {
   max-width: 900px;
   margin: 0 auto;
-  border: solid 1px gainsboro;
-  border-radius: 5px;
   padding: 10px 20px;
-  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+}
+
+footer {
+  border: solid gainsboro;
+  border-width: 1px 0 0 0;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  font-size: 9pt;
 }
 
 button {
@@ -19,9 +25,10 @@ button {
   cursor: pointer;
 }
 
-.capture-button {
-  border-color: #204675;
-  background-color: #407ac2;
+.gamepad-state {
+  background-color: whitesmoke;
+  padding: 10px 30px;
+  border-radius: 5px;
 }
 
 table {

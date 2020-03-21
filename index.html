@@ -9,9 +9,13 @@
   <body id="root">
     <article>
       <h1>GamePad Sample</h1>
-      <p id="connecting-label">ゲームパッドの接続待機中...</p>
-      <p>「Setup」ボタンを押すと、順番にキーを登録できます。</p>
-      <button id="capture" class="capture-button">Setup</button>
+      <p><a href="https://developer.mozilla.org/ja/docs/Web/API/Gamepad_API">GamePad API</a>のサンプルコードです。<a href="https://github.com/piyoppi/gamepad_playground">ソースコードはこちら</a></p>
+
+      <div class="gamepad-state">
+        <p id="connecting-label">ゲームパッドの接続待機中...</p>
+      </div>
+      <p>「Setup all keys」ボタンを押すと、順番にキーを登録できます。</p>
+      <button id="capture" class="capture-button">Setup all keys</button>
       <button id="stop">Cancel</button>
       <p>「Set」ボタンを押すと、各キーを個別に登録できます。</p>
       <div id="key-mapper">
@@ -69,6 +73,14 @@
       </div>
     </article>
 
+    <footer>
+      <p>がらくたツールボックス</p>
+      <p>Author: piyoppi</p>
+      <a href="https://garakuta-toolbox.com">HP</a>
+      <a href="https://github.com/piyoppi">GitHub(@piyoppi)</a>
+      <a href="https://twitter.com/piyorinpa">Twitter(@piyorinpa)</a>
+    </footer>
+
     <script type="module">
       import { GamePads } from './src/main.js';
       import { GamePadMapper, keyType } from './src/padMapper.js';
@@ -109,7 +121,7 @@
 
       gamePads.capture();
       gamePads.addEventHandler('connected', async (e) => {
-        document.getElementById('connecting-label').innerText = `接続されました ${e.gamepad.id}`;
+        document.getElementById('connecting-label').innerText = `✅接続されました ${e.gamepad.id}`;
         await gamePads.setIndex(0);
 
         captureButton.addEventListener('click', () => {
