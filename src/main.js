@@ -53,7 +53,13 @@ export class GamePads {
   setIndex(index) {
     this._currentIndex = index;
     this._setGamePad();
-    this._initialize();
+
+    return new Promise((resolve, reject) => {
+      setTimeout( () => {
+        this.initialize();
+        resolve();
+      }, 10 );
+    });
   }
 
   addEventHandler(name, handler) {
@@ -111,7 +117,7 @@ export class GamePads {
     this._eventHandlers[name].forEach( obj => obj.handler(e) );
   }
 
-  _initialize() {
+  initialize() {
     this.state = {
       buttons: this._currentGamePad.buttons.slice(),
       axes: this._currentGamePad.axes.slice(),

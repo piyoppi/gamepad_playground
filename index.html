@@ -108,9 +108,9 @@
       });
 
       gamePads.capture();
-      gamePads.addEventHandler('connected', e => {
+      gamePads.addEventHandler('connected', async (e) => {
         document.getElementById('connecting-label').innerText = `接続されました ${e.gamepad.id}`;
-        gamePads.setIndex(0);
+        await gamePads.setIndex(0);
 
         captureButton.addEventListener('click', () => {
           console.log('capturing');
