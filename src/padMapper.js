@@ -4,6 +4,14 @@ const captureState = {
   waitForStop: 2
 }
 
+const stepCaptureState = {
+  ready: 0,
+  capturing: 1,
+  completed: 2,
+  waitForStop: 3,
+  aborted: 4
+}
+
 export const keyType = {
   button: 0,
   axis: 1
@@ -20,7 +28,7 @@ export class GamePadMapper {
     this._gamePads = gamePads;
 
     this._captureState = captureState.ready;
-    this._stepCaptureStarted = false;
+    this._stepCaptureState = stepCaptureState.ready;
     this._pausedCapture = false;
     this._waitNeatrulIndex = -1;
 
@@ -67,39 +75,47 @@ export class GamePadMapper {
     return this._cursor;
   }
 
-  get registerAllStarted() {
-    return this._stepCaptureStarted;
-  }
-
   get captureStepCompleted() {
-    return !(this._cursor < this._keys.length);
+    return this._stepCaptureState === stepCaptureState.completed;
   }
 
   get currentKey() {
     return this._keys[this._cursor];
   }
 
-  registerAll() {
+  resetStepBy() {
     this._changeCursor(0);
+    this._stepCaptureState = stepCaptureState.ready;
+  }
+
+  registerAll() {
+    if( this._stepCaptureState !== stepCaptureState.ready ) throw new Error('The state of capturing is not ready');
 
     return new Promise(async (resolve, reject) => {
-      while(!this.captureStepCompleted) {
+      while(this._stepCaptureState === stepCaptureState.ready || this._stepCaptureState === stepCaptureState.capturing ) {
         await this.stepBy();
       }
+      if( this._stepCaptureState === stepCaptureState.waitForStop ) {
+        this._stepCaptureState === stepCaptureState.aborted;
+      }
+
       this._dispatchEvent('registerCompleted', {});
       resolve();
     });
   }
 
   async stepBy() {
-    if( !this._stepCaptureStarted ) {
+    if( this._stepCaptureState === stepCaptureState.ready ) {
       this._changeCursor(0);
-      this._stepCaptureStarted = true;
+      this._stepCaptureState = stepCaptureState.capturing;
     }
 
     await this._capture();
-    this._changeCursor(this._cursor + 1);
-    this._stepCaptureStarted = !this.captureStepCompleted;
+    if( this._stepCaptureState === stepCaptureState.capturing ) this._changeCursor(this._cursor + 1);
+
+    if( this._cursor >= this._keys.length ) {
+      this._stepCaptureState = stepCaptureState.completed;
+    }
   }
 
   async register(name) {
@@ -125,6 +141,7 @@ export class GamePadMapper {
 
   stop() {
     this._captureState = captureState.waitForStop;
+    this._changeCursor(-1);
   }
 
   addEventHandler(name, handler) {
@@ -168,6 +185,13 @@ export class GamePadMapper {
       const stepProc = () => {
         this._gamePads.step();
 
+        if(this._captureState === captureState.waitForStop) {
+          this._captureCompleted();
+          if( this._stepCaptureState === stepCaptureState.capturing ) this._stepCaptureState = stepCaptureState.waitForStop;
+          resolve();
+          return;
+        }
+
         const key = this.currentKey;
 
         if( key.type === keyType.button ) {
@@ -200,12 +224,7 @@ export class GamePadMapper {
           }
         }
 
-        if(this._captureState === captureState.waitForStop) {
-          this._captureCompleted();
-          resolve();
-        } else {
-          window.requestAnimationFrame(() => stepProc());
-        }
+        window.requestAnimationFrame(() => stepProc());
       };
 
       stepProc();
@@ -220,7 +239,7 @@ export class GamePadMapper {
   async _setFromIndex(index) {
     this._changeCursor(index);
 
-    if( !this._stepCaptureStarted ) {
+    if( this._stepCaptureState !== stepCaptureState.capturing ) {
       await this._capture();
       this._changeCursor(-1);
     }

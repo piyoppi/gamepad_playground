@@ -43,6 +43,10 @@
       const stopButton = document.getElementById('stop');
       stopButton.style.display = 'none';
 
+      stopButton.addEventListener('click', () => {
+        padMapper.stop();
+      });
+
       // set event hander to buttons
       keys.map(key => key.name).forEach(keyName => {
         const targetButton = document.getElementById(`setup-${keyName}`);
@@ -62,6 +66,7 @@
 
         captureButton.addEventListener('click', () => {
           console.log('capturing');
+          padMapper.resetStepBy();
           padMapper.registerAll();
           stopButton.style.display = '';
           captureButton.style.display = 'none';
