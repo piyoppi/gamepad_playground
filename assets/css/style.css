@@ -16,6 +16,7 @@ button {
   background-color: #407ac2;
   color: white;
   margin: 3px;
+  cursor: pointer;
 }
 
 .capture-button {
