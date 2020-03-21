@@ -205,7 +205,7 @@ export class GamePadMapper {
         } else {
           const selectedAxisIndex = this._gamePads.state.axes
             .map( (value, index) => value - this._gamePads.state.axesNeutral[index] )
-            .findIndex(diff => Math.abs(diff) > 0.5);
+            .findIndex(diff => Math.abs(diff) > 0.8);
 
           if( this._waitNeatrulIndex >= 0 ) {
             const isNeatural = Math.abs(this._gamePads.state.axesNeutral[this._waitNeatrulIndex] - this._gamePads.state.axes[this._waitNeatrulIndex]) < 0.1
