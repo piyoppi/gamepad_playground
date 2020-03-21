@@ -3,22 +3,68 @@
   <head>
     <title>GamePad sample</title>
     <meta charset="utf-8">
+    <link rel="stylesheet" href="assets/css/style.css">
   </head>
 
   <body id="root">
     <article>
       <h1>GamePad Sample</h1>
-      <button id="capture">capture</button>
-      <button id="stop">stop</button>
+      <p>「Setup」ボタンを押すと、順番にキーを登録できます。</p>
+      <button id="capture" class="capture-button">Setup</button>
+      <button id="stop">Stop</button>
+      <p>「Set」ボタンを押すと、各キーを個別に登録できます。</p>
       <div id="key-mapper">
-        <ul>
-          <li><span id="cursor0"></span>button1: <span id="key-button-1">0</span> <button id="setup-button-1">Set</button></li>
-          <li><span id="cursor1"></span>button2: <span id="key-button-2">1</span> <button id="setup-button-2">Set</button></li>
-          <li><span id="cursor2"></span>button3: <span id="key-button-3">2</span> <button id="setup-button-3">Set</button></li>
-          <li><span id="cursor3"></span>button4: <span id="key-button-4">3</span> <button id="setup-button-4">Set</button></li>
-          <li><span id="cursor4"></span>axis1: <span id="key-axis-x">0</span> <button id="setup-axis-x">Set</button></li>
-          <li><span id="cursor5"></span>axis2: <span id="key-axis-y">1</span> <button id="setup-axis-y">Set</button></li>
-        </ul>
+        <table>
+          <tr>
+            <th></th>
+            <th>キー名</th>
+            <th>対応するボタン(軸)番号</th>
+            <th>押下状態</th>
+            <th></th>
+          </th>
+          <tr>
+            <td id="cursor0"></td>
+            <td>button-1</td>
+            <td id="key-button-1">0</td>
+            <td id="state-button-1"></td>
+            <td><button id="setup-button-1">Set</button></td>
+          </tr>
+          <tr>
+            <td id="cursor1"></td>
+            <td>button-2</td>
+            <td id="key-button-2">1</td>
+            <td id="state-button-2"></td>
+            <td><button id="setup-button-2">Set</button></td>
+          </tr>
+          <tr>
+            <td id="cursor2"></td>
+            <td>button-3</td>
+            <td id="key-button-3">2</td>
+            <td id="state-button-3"></td>
+            <td><button id="setup-button-3">Set</button></td>
+          </tr>
+          <tr>
+            <td id="cursor3"></td>
+            <td>button-4</td>
+            <td id="key-button-4">3</td>
+            <td id="state-button-4"></td>
+            <td><button id="setup-button-4">Set</button></td>
+          </tr>
+          <tr>
+            <td id="cursor4"></td>
+            <td>axis-x</td>
+            <td id="key-axis-x">0</td>
+            <td id="state-axis-x"></td>
+            <td><button id="setup-axis-x">Set</button></td>
+          </tr>
+          <tr>
+            <td id="cursor5"></td>
+            <td>axis-y</td>
+            <td id="key-axis-y">1</td>
+            <td id="state-axis-y"></td>
+            <td><button id="setup-axis-y">Set</button></td>
+          </tr>
+        </table>
       </div>
     </article>
 
@@ -72,15 +118,25 @@
           captureButton.style.display = 'none';
         });
 
-        padMapper.addEventHandler('buttonChanged', e => console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`));
-        padMapper.addEventHandler('axisChanged', e => console.log(`Axis ${e.index} ${e.name} : ${e.value}`));
+        padMapper.addEventHandler('buttonChanged', e => {
+          console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`);
+          if( e.value.pressed ) {
+            document.getElementById(`state-${e.name}`).innerText = '💡';
+          } else {
+            document.getElementById(`state-${e.name}`).innerText = '  ';
+          }
+        });
+        padMapper.addEventHandler('axisChanged', e => {
+          console.log(`Axis ${e.index} ${e.name} : ${e.value}`);
+          document.getElementById(`state-${e.name}`).innerText = Math.round(e.value * 1000.0) / 1000.0;
+        });
       });
 
       padMapper.addEventHandler('cursorChanged', e => {
         keys.forEach((_key, index) => {
           document.getElementById(`cursor${index}`).innerText = '';
         });
-        if( e.cursor >= 0 ) document.getElementById(`cursor${e.cursor}`).innerText = '->';
+        if( e.cursor >= 0 ) document.getElementById(`cursor${e.cursor}`).innerText = '👉';
       });
 
       padMapper.addEventHandler('registerCompleted', e => {

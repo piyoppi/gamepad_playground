@@ -1,0 +1,41 @@
+article {
+  max-width: 900px;
+  margin: 0 auto;
+  border: solid 1px gainsboro;
+  border-radius: 5px;
+  padding: 10px 20px;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.2);
+}
+
+button {
+  border-style: solid;
+  border-color: #204675;
+  border-width: 1px 3px 3px 1px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #407ac2;
+  color: white;
+  margin: 3px;
+}
+
+.capture-button {
+  border-color: #204675;
+  background-color: #407ac2;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+tr {
+  border: solid black;
+  border-width: 1px 0 0 0;
+}
+
+td, th {
+  padding: 3px 20px;
+}
+
+tr:last-child {
+  border-width: 1px 0 1px 0;
+}
