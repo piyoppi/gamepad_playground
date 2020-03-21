@@ -92,11 +92,8 @@ export class GamePadMapper {
     if( this._stepCaptureState !== stepCaptureState.ready ) throw new Error('The state of capturing is not ready');
 
     return new Promise(async (resolve, reject) => {
-      while(this._stepCaptureState === stepCaptureState.ready || this._stepCaptureState === stepCaptureState.capturing ) {
+      while( this._stepCaptureState === stepCaptureState.ready || this._stepCaptureState === stepCaptureState.capturing ) {
         await this.stepBy();
-      }
-      if( this._stepCaptureState === stepCaptureState.waitForStop ) {
-        this._stepCaptureState === stepCaptureState.aborted;
       }
 
       this._dispatchEvent('registerCompleted', {});
@@ -112,6 +109,7 @@ export class GamePadMapper {
 
     await this._capture();
     if( this._stepCaptureState === stepCaptureState.capturing ) this._changeCursor(this._cursor + 1);
+    if( this._stepCaptureState === stepCaptureState.waitForStop ) this._stepCaptureState === stepCaptureState.aborted;
 
     if( this._cursor >= this._keys.length ) {
       this._stepCaptureState = stepCaptureState.completed;
