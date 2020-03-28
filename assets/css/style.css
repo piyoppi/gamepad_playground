@@ -29,6 +29,7 @@ button {
   background-color: whitesmoke;
   padding: 10px 30px;
   border-radius: 5px;
+  margin: 10px;
 }
 
 .gamepad-select {
