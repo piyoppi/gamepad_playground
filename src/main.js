@@ -50,6 +50,24 @@ export class GamePads {
     return this._captureState !== captureState.ready;
   }
 
+  setFirstPad() {
+    let activePadIndex = -1;
+    const gamePads = this.pads;
+
+    for( let i=0; i<gamePads.length; i++ ) {
+      if( !!this.pads[i] ) {
+        activePadIndex = i;
+        break;
+      }
+    }
+
+    if( activePadIndex < 0 ) {
+      throw new Error('Active pads is not found');
+    }
+
+    this.setIndex(activePadIndex);
+  }
+
   setIndex(index) {
     this._currentIndex = index;
     this._setGamePad();
