@@ -6,7 +6,7 @@ const captureState = {
 
 export class GamePads {
   constructor() {
-    this._currentIndex = 0;
+    this._currentIndex = -1;
     this._currentGamePad = null;
     this._connectedGamePadsCount = 0;
     this._captureState = captureState.ready;
@@ -55,17 +55,21 @@ export class GamePads {
     return this._captureState !== captureState.ready;
   }
 
-  setFirstPad() {
+  async setFirstPad() {
     const pads = this.pads;
 
     if( pads.length === 0 ) {
       throw new Error('Active pads is not found');
     }
 
-    this.setIndex(pads[0].index);
+    await this.setIndex(pads[0].index);
   }
 
   setIndex(index) {
+    if( this._captureState !== captureState.ready ) {
+      throw new Error('A gamepad was capturing');
+    }
+
     this._currentIndex = index;
     this._setGamePad();
 

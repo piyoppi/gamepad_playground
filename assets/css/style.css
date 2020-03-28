@@ -31,6 +31,13 @@ button {
   border-radius: 5px;
 }
 
+.gamepad-select {
+  padding: 10px;
+  border: 1px solid gainsboro;
+  border-radius: 3px;
+  margin: 0 20px;
+}
+
 table {
   border-collapse: collapse;
 }
