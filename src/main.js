@@ -43,7 +43,12 @@ export class GamePads {
   }
 
   get pads() {
-    return navigator.getGamepads();
+    const filteredPads = [];
+    const pads = navigator.getGamepads();
+    for( let i=0; i<pads.length; i++ ) {
+      if( !!pads[i] ) filteredPads.push({ index: i, gamepad: pads[i] });
+    }
+    return filteredPads;
   }
 
   get capturing() {
@@ -51,21 +56,13 @@ export class GamePads {
   }
 
   setFirstPad() {
-    let activePadIndex = -1;
-    const gamePads = this.pads;
+    const pads = this.pads;
 
-    for( let i=0; i<gamePads.length; i++ ) {
-      if( !!this.pads[i] ) {
-        activePadIndex = i;
-        break;
-      }
-    }
-
-    if( activePadIndex < 0 ) {
+    if( pads.length === 0 ) {
       throw new Error('Active pads is not found');
     }
 
-    this.setIndex(activePadIndex);
+    this.setIndex(pads[0].index);
   }
 
   setIndex(index) {
