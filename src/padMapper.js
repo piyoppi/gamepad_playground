@@ -177,7 +177,7 @@ export class GamePadMapper {
   }
 
   async _capture() {
-    if( this._captureState === captureState.capturing ) return Promise.reject();
+    if( this._captureState === captureState.capturing ) throw new Error('capturing is already started');
     this._captureState = captureState.capturing;
 
     if( this._gamePads.capturing ) {
