@@ -1,28 +1,11 @@
 import { GamePads, captureState } from './../src/main.js'
 import { RequestAnimationFrameHelper } from './requestAnimationFrameHelper.js'
-
-Object.defineProperty(window.navigator, 'getGamepads', {
-  writable: true,
-  value: jest.fn().mockImplementation(() => {
-    return [
-      {buttons: [], axes:[]},
-      undefined,
-      {buttons: [], axes:[]},
-      null,
-      {buttons: [], axes:[]},
-    ]
-  })
-});
-
+import './gamePadsHelper.js'
 
 function createGamePads() {
   const gamePads = new GamePads();
-  connectGamePad(gamePads);
-  return gamePads;
-}
-
-function connectGamePad(gamePads) {
   gamePads._gamepadConnectedHandler({});
+  return gamePads;
 }
 
 describe('#hasPads', () => {
@@ -93,7 +76,6 @@ describe('#_capture', () => {
   it('not called step() when captureState is waitForStop', () => {
     const gamePads = createGamePads();
     RequestAnimationFrameHelper.reset();
-    connectGamePad(gamePads);
     gamePads.step = jest.fn();
 
     // called _capture()

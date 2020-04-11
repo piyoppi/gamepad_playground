@@ -119,7 +119,12 @@ export class GamePadMapper {
   async register(name) {
     const index = this._keys.findIndex( key => key.name === name );
     if( index >= 0 ) {
-      await this._setFromIndex(index);
+      this._changeCursor(index);
+
+      if( this._stepCaptureState !== stepCaptureState.capturing ) {
+        await this._capture();
+        this._changeCursor(-1);
+      }
     }
   }
 
@@ -232,15 +237,6 @@ export class GamePadMapper {
   _captureCompleted() {
     this._captureState = captureState.ready;
     this._restartCapture();
-  }
-
-  async _setFromIndex(index) {
-    this._changeCursor(index);
-
-    if( this._stepCaptureState !== stepCaptureState.capturing ) {
-      await this._capture();
-      this._changeCursor(-1);
-    }
   }
 
   async _pauseCapture() {
