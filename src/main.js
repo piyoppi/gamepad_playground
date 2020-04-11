@@ -1,4 +1,4 @@
-const captureState = {
+export const captureState = {
   ready: 0,
   capturing: 1,
   waitForStop: 2
@@ -30,6 +30,14 @@ export class GamePads {
     this._setupEventListener();
   }
 
+  get captureState() {
+    return this._captureState;
+  }
+
+  get currentIndex() {
+    return this._currentIndex;
+  }
+
   get hasPads() {
     return this._connectedGamePadsCount > 0;
   }
@@ -44,7 +52,7 @@ export class GamePads {
 
   get pads() {
     const filteredPads = [];
-    const pads = navigator.getGamepads();
+    const pads = window.navigator.getGamepads();
     for( let i=0; i<pads.length; i++ ) {
       if( !!pads[i] ) filteredPads.push({ index: i, gamepad: pads[i] });
     }
@@ -147,15 +155,18 @@ export class GamePads {
   }
 
   _setupEventListener() {
-    window.addEventListener("gamepadconnected", e => {
-      this._connectedGamePadsCount++;
-      this._dispatchEvent('connected', e);
-    });
+    window.addEventListener("gamepadconnected", e => this._gamepadConnectedHandler(e));
+    window.addEventListener("gamepaddisconnected", e => this._gamepadDisconnectedHandler(e));
+  }
 
-    window.addEventListener("gamepaddisconnected", e => {
-      this._connectedGamePadsCount--;
-      this._dispatchEvent('disconnected', e);
-    });
+  _gamepadConnectedHandler(e) {
+    this._connectedGamePadsCount++;
+    this._dispatchEvent('connected', e);
+  }
+
+  _gamepadDisconnectedHandler(e) {
+    this._connectedGamePadsCount--;
+    this._dispatchEvent('disconnected', e);
   }
 
   _setGamePad() {
