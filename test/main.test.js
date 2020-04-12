@@ -1,6 +1,6 @@
 import { GamePads, captureState } from './../src/main.js'
 import { RequestAnimationFrameHelper } from './requestAnimationFrameHelper.js'
-import './gamePadsHelper.js'
+import { GamePadsTestHelper, pressedButtonState } from './gamePadsHelper.js'
 
 function createGamePads() {
   const gamePads = new GamePads();
@@ -85,6 +85,45 @@ describe('#_capture', () => {
     // not called _capture()
     gamePads._capture();
     expect(gamePads.step).toBeCalledTimes(1);
+  });
+});
+
+describe('#setFirstPad', () => {
+  it('set first pad', () => {
+    const gamePads = createGamePads();
+    GamePadsTestHelper.reset([
+      undefined,
+      {buttons: [], axes:[]},
+      null,
+      {buttons: [], axes:[]},
+    ], 1);
+    gamePads.setFirstPad();
+    expect(gamePads.currentIndex).toEqual(1);
+  });
+});
+
+describe('#step', () => {
+  let gamePads;
+  let buttonChangedHandler;
+  let axisChangedHandler;
+
+  beforeEach(async () => {
+    gamePads = createGamePads();
+    await gamePads.setFirstPad();
+
+    buttonChangedHandler = jest.fn();
+    axisChangedHandler = jest.fn();
+    gamePads.addEventHandler('buttonChanged', buttonChangedHandler);
+    gamePads.addEventHandler('axisChanged', axisChangedHandler);
+  });
+
+  it('capture buttons and axes', () => {
+    GamePadsTestHelper.press(1);
+    GamePadsTestHelper.tilt(1, 1);
+    gamePads.step();
+
+    expect(buttonChangedHandler).toBeCalledWith({value: pressedButtonState, index: 1});
+    expect(axisChangedHandler).toBeCalledWith({value: 1, index: 1});
   });
 });
 

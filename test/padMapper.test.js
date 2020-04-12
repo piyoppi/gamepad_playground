@@ -1,7 +1,7 @@
 import { GamePads, captureState } from './../src/main.js'
 import { GamePadMapper, keyType } from './../src/padMapper.js'
 import { RequestAnimationFrameHelper } from './requestAnimationFrameHelper.js'
-import { buttons as gamePadButtons, GamePadsTestHelper } from './gamePadsHelper.js'
+import { GamePadsTestHelper } from './gamePadsHelper.js'
 
 const keys = [
   { name: 'button-1', type: keyType.button, index: 0 },

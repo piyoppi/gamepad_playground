@@ -1,42 +1,47 @@
 export const depressedButtonState = { pressed: false, touched: false, value: 0 };
 export const pressedButtonState = { pressed: true, touched: true, value: 1 };
 
-let buttons = [
+const defaultButtons = [
   depressedButtonState,
   depressedButtonState,
   depressedButtonState,
   depressedButtonState
 ];
 
-let axes = [0, 0];
+const defaultAxes = [0, 0];
+
+const defaultGamePads = [
+  {buttons: [], axes:[]},
+  undefined,
+  {buttons: [], axes:[]},
+  null,
+  {buttons: [], axes:[]},
+];
+
+let gamePads;
+let activeGamePadIndex = 0;
 
 Object.defineProperty(window.navigator, 'getGamepads', {
   writable: true,
   value: jest.fn().mockImplementation(() => {
-    return [
-      {buttons, axes},
-      undefined,
-      {buttons: [], axes:[]},
-      null,
-      {buttons: [], axes:[]},
-    ]
+    return gamePads;
   })
 });
 
 export const GamePadsTestHelper = {
-  reset() {
-    buttons = [
-      depressedButtonState,
-      depressedButtonState,
-      depressedButtonState,
-      depressedButtonState
-    ];
-    axes = [0, 0]
+  reset(initialGamePads = null, activatedGamePadIndex = 0) {
+    activeGamePadIndex = activatedGamePadIndex;
+
+    gamePads = initialGamePads ? initialGamePads : defaultGamePads.slice();
+    gamePads[activeGamePadIndex].buttons = defaultButtons.slice();
+    gamePads[activeGamePadIndex].axes = defaultAxes.slice();
   },
   press(index) {
-    buttons[index] = pressedButtonState;
+    gamePads[activeGamePadIndex].buttons[index] = pressedButtonState;
   },
   tilt(index, value) {
-    axes[index] = value;
+    gamePads[activeGamePadIndex].axes[index] = value;
   }
 };
+
+GamePadsTestHelper.reset();
