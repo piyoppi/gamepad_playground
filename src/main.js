@@ -1,197 +1,95 @@
-export const captureState = {
-  ready: 0,
-  capturing: 1,
-  waitForStop: 2
-}
+import { GamePads, GamePadMapper, keyType } from '@piyoppi/picopico-pad';
 
-export class GamePads {
-  constructor() {
-    this._currentIndex = -1;
-    this._currentGamePad = null;
-    this._connectedGamePadsCount = 0;
-    this._captureState = captureState.ready;
+const gamePads = new GamePads();
+const keys = [
+  { name: 'button-1', type: keyType.button, index: 0 },
+  { name: 'button-2', type: keyType.button, index: 1 },
+  { name: 'button-3', type: keyType.button, index: 2 },
+  { name: 'button-4', type: keyType.button, index: 3 },
+  { name: 'axis-x', type: keyType.axis, index: 0 },
+  { name: 'axis-y', type: keyType.axis, index: 1 }
+];
 
-    this._eventHandlers = {
-      buttonChanged: [],
-      axisChanged: [],
-      connected: [],
-      disconnected: [],
-    };
-    this._eventHandlersCounter = 0;
+const gamePadListElem = document.getElementById('gamepads');
+const buildGamePadSelector = () => {
+  gamePadListElem.innerHTML = '';
 
-    this.state = {
-      buttons: [],
-      axes: [],
-      axesNeutral: []
-    };
-    this._buttonChangedStates = [];
-    this._axisChangedStates = [];
+  gamePads.pads.forEach( item => {
+    const padItemElem = document.createElement('option');
+    padItemElem.setAttribute('value', item.index);
+    padItemElem.innerText = item.gamepad.id;
+    gamePadListElem.appendChild(padItemElem);
+  });
+};
 
-    this._setupEventListener();
-  }
+gamePadListElem.onchange = async (e) => {
+  await gamePads.stop();
+  await gamePads.setIndex(parseInt(e.target.value));
+  gamePads.capture();
+};
 
-  get captureState() {
-    return this._captureState;
-  }
+const padMapper = new GamePadMapper(gamePads, keys);
 
-  get currentIndex() {
-    return this._currentIndex;
-  }
+// UI
+const captureButton = document.getElementById('capture');
+const stopButton = document.getElementById('stop');
+stopButton.style.display = 'none';
 
-  get hasPads() {
-    return this._connectedGamePadsCount > 0;
-  }
+stopButton.addEventListener('click', () => {
+  padMapper.stop();
+});
 
-  get buttonChangedStates() {
-    return this._buttonChangedStates;
-  }
+// set event hander to buttons
+keys.map(key => key.name).forEach(keyName => {
+  const targetButton = document.getElementById(`setup-${keyName}`);
+  targetButton.addEventListener('click', async () => {
+    await padMapper.register(keyName);
+  });
+});
 
-  get axisChangedStates() {
-    return this._axisChangedStates;
-  }
+// Show the result of key mappings
+padMapper.addEventHandler('applied', e => {
+  document.getElementById(`key-${e.name}`).innerText = e.index;
+});
 
-  get pads() {
-    const filteredPads = [];
-    const pads = window.navigator.getGamepads();
-    for( let i=0; i<pads.length; i++ ) {
-      if( !!pads[i] ) filteredPads.push({ index: i, gamepad: pads[i] });
+gamePads.addEventHandler('connected', async (e) => {
+  document.getElementById('connecting-label').innerText = `✅接続されました ${e.gamepad.id}`;
+  buildGamePadSelector();
+  await gamePads.setFirstPad();
+
+  gamePads.capture();
+
+  captureButton.addEventListener('click', () => {
+    console.log('capturing');
+    padMapper.resetStepBy();
+    padMapper.registerAll();
+    stopButton.style.display = '';
+    captureButton.style.display = 'none';
+  });
+
+  padMapper.addEventHandler('buttonChanged', e => {
+    console.log(`Button ${e.index} ${e.name} : ${e.value.pressed}`);
+    if( e.value.pressed ) {
+      document.getElementById(`state-${e.name}`).innerText = '💡';
+    } else {
+      document.getElementById(`state-${e.name}`).innerText = '  ';
     }
-    return filteredPads;
-  }
+  });
+  padMapper.addEventHandler('axisChanged', e => {
+    console.log(`Axis ${e.index} ${e.name} : ${e.value}`);
+    document.getElementById(`state-${e.name}`).innerText = Math.round(e.value * 1000.0) / 1000.0;
+  });
+});
 
-  get capturing() {
-    return this._captureState !== captureState.ready;
-  }
+padMapper.addEventHandler('cursorChanged', e => {
+  keys.forEach((_key, index) => {
+    document.getElementById(`cursor${index}`).innerText = '';
+  });
+  if( e.cursor >= 0 ) document.getElementById(`cursor${e.cursor}`).innerText = '👉';
+});
 
-  async setFirstPad() {
-    const pads = this.pads;
-
-    if( pads.length === 0 ) {
-      throw new Error('Active pads is not found');
-    }
-
-    await this.setIndex(pads[0].index);
-  }
-
-  setIndex(index) {
-    if( this._captureState !== captureState.ready ) {
-      throw new Error('A gamepad was capturing');
-    }
-
-    this._currentIndex = index;
-    this._setGamePad();
-
-    return new Promise((resolve, reject) => {
-      setTimeout( () => {
-        this.initialize();
-        resolve();
-      }, 10 );
-    });
-  }
-
-  addEventHandler(name, handler) {
-    this._eventHandlers[name].push({
-      handler,
-      id: this._eventHandlersCounter++
-    });
-  }
-
-  step() {
-    this._setGamePad();
-    this._captureButtons();
-    this._captureAxes();
-  }
-
-  capture() {
-    if( this.capturing ) return;
-    this._captureState = captureState.capturing;
-    this._capture();
-  }
-
-  stop() {
-    if( this._captureState === captureState.capturing ) {
-      this._captureState = captureState.waitForStop;
-    }
-
-    return new Promise((resolve, reject) => {
-      const waitForStop = () => {
-        if( this._captureState === captureState.ready ) {
-          resolve();
-        } else {
-          window.requestAnimationFrame(waitForStop);
-        }
-      };
-
-      waitForStop();
-    });
-  }
-
-  _capture() {
-    if( this._captureState === captureState.waitForStop ) {
-      this._captureState = captureState.ready;
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      if( this.hasPads ) {
-        this.step();
-      }
-      this._capture();
-    });
-  }
-
-  _dispatchEvent(name, e) {
-    this._eventHandlers[name].forEach( obj => obj.handler(e) );
-  }
-
-  initialize() {
-    this.state = {
-      buttons: this._currentGamePad.buttons.slice(),
-      axes: this._currentGamePad.axes.slice(),
-      axesNeutral: this._currentGamePad.axes.slice()
-    };
-    this._buttonChangedStates = this._currentGamePad.buttons.map(() => false);
-    this._axisChangedStates = this._currentGamePad.axes.map(() => false);
-  }
-
-  _setupEventListener() {
-    window.addEventListener("gamepadconnected", e => this._gamepadConnectedHandler(e));
-    window.addEventListener("gamepaddisconnected", e => this._gamepadDisconnectedHandler(e));
-  }
-
-  _gamepadConnectedHandler(e) {
-    this._connectedGamePadsCount++;
-    this._dispatchEvent('connected', e);
-  }
-
-  _gamepadDisconnectedHandler(e) {
-    this._connectedGamePadsCount--;
-    this._dispatchEvent('disconnected', e);
-  }
-
-  _setGamePad() {
-    this._currentGamePad = navigator.getGamepads()[this._currentIndex];
-  }
-
-  _captureButtons() {
-    this.state.buttons.forEach((state, index) => {
-      const currentState = this._currentGamePad.buttons[index];
-      const isChanged = (state.pressed !== currentState.pressed) || (state.value !== currentState.value) || (state.touched !== currentState.touched);
-      this._buttonChangedStates[index] = isChanged;
-      if ( isChanged ) this._dispatchEvent('buttonChanged', {value: currentState, index});
-
-      this.state.buttons[index] = {pressed: currentState.pressed, value: currentState.value, touched: currentState.touched};
-    });
-  }
-
-  _captureAxes() {
-    this.state.axes.forEach((state, index) => {
-      const currentState = this._currentGamePad.axes[index];
-      const isChanged = currentState !== state;
-      this._axisChangedStates[index] = isChanged;
-      if ( isChanged ) this._dispatchEvent('axisChanged', {value: currentState, index});
-
-      this.state.axes[index] = currentState;
-    });
-  }
-}
+padMapper.addEventHandler('registerCompleted', e => {
+  console.log('captured');
+  stopButton.style.display = 'none';
+  captureButton.style.display = '';
+});
